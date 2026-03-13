@@ -1,0 +1,446 @@
+================================================================
+KERNIMPLE LANGUAGE SPECIFICATION — VERSION 0.1
+================================================================
+An open source programming language designed for kernel development.
+Simpler than C. More stable than Zig. Built for the bare metal.
+Licensed under GPL
+================================================================
+
+
+----------------------------------------------------------------
+1. INTRODUCTION
+----------------------------------------------------------------
+
+Kernimple is an open source programming language designed
+specifically for kernel development. It aims to be simpler and
+more beginner-friendly than C, more stable than Zig, and more
+focused than Rust — without sacrificing the low-level control
+that kernel development requires.
+
+Kernimple compiles directly to machine code with a built-in
+compiler. No external toolchain setup. The goal is plug, load,
+run — and nothing else in the way.
+
+
+PHILOSOPHY
+- Simple syntax that reads like plain English
+- Built-in compiler, no separate download required
+- Designed exclusively for kernel and bare metal development
+- Stable release cycle — major updates every 9-10 months only
+- Fully open source, licensed under GPL
+- Community supported via Discord and official website
+
+WHAT KERNIMPLE IS NOT
+- Not a general purpose language
+- Not a replacement for Python or JavaScript
+- Not an operating system — it is a language to BUILD kernels with
+
+
+----------------------------------------------------------------
+2. PROGRAM STRUCTURE
+----------------------------------------------------------------
+
+Every Kernimple program has one required entry point — the start
+block. This is where the kernel begins execution. Lines inside
+start run once from top to bottom unless wrapped in a loop.
+
+    start {
+        vprint(Kernimple booted)
+    }
+
+
+----------------------------------------------------------------
+3. OUTPUT
+----------------------------------------------------------------
+
+vprint outputs text directly to the screen via VGA hardware.
+It is the primary output command in Kernimple.
+
+    vprint(Hello from Kernimple)
+    vprint(kernel is ready)
+
+Text values do not require quotes. Kernimple determines whether
+a value is text or a number by reading its content — letters
+mean text, digits mean number.
+
+
+----------------------------------------------------------------
+4. VARIABLES
+----------------------------------------------------------------
+
+Variables are declared with the var keyword. All values are
+wrapped in parentheses. No type declarations required —
+Kernimple infers the type automatically.
+
+    var name = (Kernimple)
+    var version = (1)
+
+    start {
+        var name = (Kernimple)
+        vprint(name)
+    }
+
+
+----------------------------------------------------------------
+5. BOOLEANS
+----------------------------------------------------------------
+
+Booleans use the < > diamond syntax, inspired by Scratch.
+
+    var ison = <true>
+    var isoff = <false>
+
+    if/(ison == <true>) {
+        vprint(system is on)
+    } else/(vprint(system is off))
+
+
+----------------------------------------------------------------
+6. ARRAYS
+----------------------------------------------------------------
+
+Arrays use square brackets with comma separated values.
+Arrays are zero indexed — the first item is at index 0.
+
+    var numbers = [1, 2, 3, 4, 5]
+    var names = [Kernimple, Linux, Zig]
+
+    start {
+        vprint(numbers[0])    /*/ prints 1 /*/
+        vprint(names[2])      /*/ prints Zig /*/
+    }
+
+
+----------------------------------------------------------------
+7. LOOPS
+----------------------------------------------------------------
+
+multime runs a block of code a specified number of times.
+If no number is given, it runs forever.
+This is the only loop construct in Kernimple.
+
+    multime(5) {
+        vprint(hi)
+    }
+
+    multime {
+        vprint(running forever)
+    }
+
+Lines inside start that are not wrapped in multime run once.
+
+
+----------------------------------------------------------------
+8. CONDITIONALS
+----------------------------------------------------------------
+
+Kernimple uses if/ and else/ for conditional logic.
+The condition goes inside parentheses after if/.
+The else/ action goes directly inside its parentheses.
+
+= inside var means assignment.
+= inside if/ means comparison.
+The compiler determines which based on context.
+
+    var x = (10)
+
+    if/(x = 10) {
+        vprint(correct)
+    } else/(vprint(wrong))
+
+
+----------------------------------------------------------------
+9. FUNCTIONS
+----------------------------------------------------------------
+
+Functions are self-contained blocks that sit loaded in memory
+waiting to be called. Each function is assigned a unique ID
+so it can be referenced precisely.
+
+    func {
+        func id=(1)
+        func name=(bootmessage)
+        func run=(vprint(Kernimple booted))
+        func run=(vprint(kernel is ready))
+    }
+
+To call a function, reference it by name and ID:
+
+    start {
+        func name=(bootmessage) func id=(1)
+    }
+
+If two functions share the same name, the ID is the tiebreaker.
+
+RETURN VALUES
+Functions return values using return: with the func id.
+
+    func {
+        func id=(1)
+        func name=(calculate)
+        func run=(math=(7+652))
+        return: func id=(1)
+    }
+
+    start {
+        var result = (func name=(calculate) func id=(1))
+        vprint(result)
+    }
+
+
+----------------------------------------------------------------
+10. IMPORTS — THE come KEYWORD
+----------------------------------------------------------------
+
+The come keyword imports modules into a Kernimple program.
+
+    come = math
+    come = memory
+    come = drivers
+
+MATH OPERATIONS
+Math is imported via come and results are tagged with IDs:
+
+    come math (math=5+5 id=6)
+    come math (math=10+10 id=7)
+
+    start {
+        vprint(math id=6)
+        vprint(math id=7)
+    }
+
+
+----------------------------------------------------------------
+11. BUNDLES
+----------------------------------------------------------------
+
+Bundles group related data together under one name.
+
+    bundle cpu {
+        name = (Ryzen 7)
+        speed = (3.8)
+        cores = (8)
+    }
+
+    start {
+        vprint(cpu.name)     /*/ prints Ryzen 7 /*/
+        vprint(cpu.cores)    /*/ prints 8 /*/
+    }
+
+
+----------------------------------------------------------------
+12. ERROR HANDLING
+----------------------------------------------------------------
+
+Kernimple uses try and fail for error handling.
+The built-in error variable contains what went wrong.
+
+    try {
+        func name=(calculate) func id=(1)
+    } fail {
+        vprint(error)
+    }
+
+
+----------------------------------------------------------------
+13. HARDWARE DETECTION — h//
+----------------------------------------------------------------
+
+The detect h// syntax provides a unified interface for
+detecting and interacting with hardware.
+
+INPUT DETECTION
+    detect h//key=(shft+u)
+    detect h//key=(ctrl+alt+del)
+    detect h//mouse=(click left)
+    detect h//mouse=(scroll down)
+
+DISPLAY DETECTION
+    detect h//screent=(oled)
+    detect h//screent=(lcd)
+    detect h//screent=(hdmi)
+
+MONITOR PROPERTIES
+    detect h//monitor=(fps)
+    detect h//monitor=(resolution)
+    detect h//monitor=(refreshrate)
+    detect h//monitor=(hdr)
+    detect h//monitor=(gsync)
+
+GPU DETECTION
+    detect h//gpu=(nvidia)
+    detect h//gpu=(amd)
+    detect h//gpu=(intel)
+
+COMBINED WITH CONDITIONALS
+    start {
+        if/(detect h//screent=(oled)) {
+            vprint(oled screen detected)
+        } else/(vprint(not oled))
+    }
+
+
+----------------------------------------------------------------
+14. REAL OPERATIONS — ro
+----------------------------------------------------------------
+
+ro means Real Operation. Anything touching actual hardware
+directly uses ro. This includes bitwise operations, memory
+access, pointers, and interrupts.
+
+BITWISE OPERATIONS
+    ro(x, AND, y)        /*/ bitwise AND — check if bit is set /*/
+    ro(x, OR, y)         /*/ bitwise OR — turn a bit on /*/
+    ro(x, NOT)           /*/ bitwise NOT — flip all bits /*/
+    ro(x, XOR, y)        /*/ bitwise XOR — toggle specific bits /*/
+    ro(x, LEFT, 2)       /*/ shift bits left /*/
+    ro(x, RIGHT, 2)      /*/ shift bits right /*/
+
+MEMORY ACCESS
+    ro ram(0x1000)           /*/ read from RAM address /*/
+    ro ram(0x1000) = (5)     /*/ write 5 to RAM address /*/
+
+POINTERS
+    ro ptr = &x              /*/ pointer to x /*/
+
+INTERRUPTS
+Interrupts handle hardware events — keyboard, mouse, timer etc.
+
+    ro interrupt keyboard {
+        vprint(key pressed)
+    }
+
+    ro interrupt timer {
+        vprint(tick)
+    }
+
+    ro interrupt mouse {
+        vprint(mouse moved)
+    }
+
+
+----------------------------------------------------------------
+15. COMMENTS
+----------------------------------------------------------------
+
+Comments use the /*/ delimiter on both sides.
+Same syntax for single line and multiline.
+
+    /*/ this is a single line comment /*/
+
+    /*/
+    this is a
+    multiline comment
+    /*/
+
+
+----------------------------------------------------------------
+16. FULL EXAMPLE PROGRAM
+----------------------------------------------------------------
+
+    /*/ import modules /*/
+    come math (math=5+5 id=1)
+    come = memory
+
+    /*/ define boot function /*/
+    func {
+        func id=(1)
+        func name=(boot)
+        func run=(vprint(Kernimple booted))
+        func run=(vprint(kernel is ready))
+        return: func id=(1)
+    }
+
+    /*/ hardware bundle /*/
+    bundle screen {
+        type = (oled)
+        res = (1080)
+    }
+
+    /*/ keyboard interrupt /*/
+    ro interrupt keyboard {
+        vprint(key pressed)
+    }
+
+    /*/ kernel entry point /*/
+    start {
+        func name=(boot) func id=(1)
+
+        var version = (1)
+        vprint(version)
+
+        if/(detect h//screent=(oled)) {
+            vprint(oled display detected)
+        } else/(vprint(display detected))
+
+        try {
+            ro ram(0x1000) = (5)
+        } fail {
+            vprint(error)
+        }
+
+        var x = (12)
+        var y = (10)
+        ro(x, AND, y)
+
+        var cores = [1, 2, 3, 4, 5, 6, 7, 8]
+        vprint(cores[0])
+
+        multime(3) {
+            vprint(hello)
+        }
+
+        multime {
+            vprint(kernel running)
+        }
+    }
+
+
+----------------------------------------------------------------
+17. QUICK REFERENCE
+----------------------------------------------------------------
+
+    KEYWORD                 PURPOSE
+    ----------------------------------------------------------------
+    start { }               Kernel entry point
+    vprint( )               Print to screen
+    var x = ( )             Declare variable
+    <true> <false>          Boolean values
+    [1, 2, 3]               Array
+    array[0]                Access array (zero indexed)
+    multime(n) { }          Loop n times
+    multime { }             Loop forever
+    if/( ) { }              Conditional
+    else/( )                Else branch
+    func { }                Define function
+    func id=( )             Function ID
+    func name=( )           Function name
+    func run=( )            Function code
+    return: func id=( )     Return value
+    come = x                Import module
+    come math (math= id=)   Math operation with ID
+    bundle name { }         Group related data
+    try { } fail { }        Error handling
+    detect h//              Hardware detection
+    ro( )                   Bitwise operation
+    ro ram( )               Read/write RAM address
+    ro ptr = &x             Pointer
+    ro interrupt name { }   Interrupt handler
+    /*/ /*/                 Comment
+
+
+----------------------------------------------------------------
+18. RELEASE & COMMUNITY
+----------------------------------------------------------------
+
+- Kernimple is fully open source, licensed under GPL
+- Major version updates released every 9-10 months
+- All syntax changes documented before release
+- Community support via official website
+- Driver contributions welcome from hardware vendors and community
+- Contributions via GitHub pull requests
+
+
+================================================================
+KERNIMPLE v0.1 — Built from scratch. For the bare metal.
+================================================================
