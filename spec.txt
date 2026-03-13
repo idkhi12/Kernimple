@@ -28,7 +28,7 @@ PHILOSOPHY
 - Designed exclusively for kernel and bare metal development
 - Stable release cycle — major updates every 9-10 months only
 - Fully open source, licensed under GPL
-- Community supported via Discord and official website
+- Community supported via official website
 
 WHAT KERNIMPLE IS NOT
 - Not a general purpose language
