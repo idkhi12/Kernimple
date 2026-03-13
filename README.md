@@ -89,7 +89,7 @@ To contribute:
 
 COMMUNITY
 ----------------------------------------------------------------
-Discord and website coming soon.
+website coming soon.
 For now open a GitHub issue to ask questions or share ideas.
 
 
